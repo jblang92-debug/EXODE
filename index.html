@@ -7718,7 +7718,7 @@ boot();
 <script>
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   const had=!!navigator.serviceWorker.controller;
-  navigator.serviceWorker.register('sw.js').catch(()=>{});
+  navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(r=>{ r.update().catch(()=>{}); document.addEventListener('visibilitychange',()=>{ if(!document.hidden) r.update().catch(()=>{}); }); }).catch(()=>{});
   navigator.serviceWorker.addEventListener('controllerchange',()=>{ if(!had) return; if(document.getElementById('upd')) return;
     const b=document.createElement('div'); b.id='upd'; b.style.cssText='position:fixed;left:12px;right:12px;bottom:12px;z-index:99999;background:#10203a;border:1px solid #ffb946;color:#fff;padding:12px 14px;border-radius:10px;font:600 14px system-ui;display:flex;gap:10px;align-items:center;justify-content:space-between';
     b.innerHTML='<span>Nouvelle version disponible.</span><button style="background:#ffb946;border:0;border-radius:8px;padding:8px 14px;font:700 13px system-ui;color:#111">Relancer</button>';
