@@ -8,6 +8,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="EXODE">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<script>window.APP_BUILD="d7691e3f35";</script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>EXODE</title>
@@ -7395,6 +7396,7 @@ function pAvatarHTML(size,cls=''){ const p=PR(); let img='';
   const fr=ART_URL['x_pf_'+F.id]; if(fr) return `<span class="pav pfx ${cls}" style="--fc:${F.c};width:${size}px;height:${size}px"><span class="pin">${img}</span><img class="pring" alt="" src="${fr}"></span>`;
   return `<span class="pav ${cls}" style="--fc:${F.c};width:${size}px;height:${size}px">${img}</span>`; }
 function pBtnRefresh(){ const b=document.getElementById('profbtn'); if(b) b.innerHTML=pAvatarHTML(34); }
+const GAME_VER='125';
 function openProfile(){ checkTrophies(); const p=PR(); const F=P_FRAMES.find(f=>f.id===p.frame)||P_FRAMES[0];
   const cmds=P_OWNCMD(), ships=Object.keys(S.ships);
   const avs=[...cmds.map(c=>({k:'c:'+c,n:CMD[c].short||CMD[c].n,h:cmdImg(c)})),...ships.map(s=>({k:'s:'+s,n:SHIP[s].n,h:(shipArt(s)?artImg(shipArt(s)):`<img alt="" src="${portraitOf(s,90,90)}">`)}))];
@@ -7405,7 +7407,7 @@ function openProfile(){ checkTrophies(); const p=PR(); const F=P_FRAMES.find(f=>
     <section class="sec"><div class="sec-h"><h2>Cadre</h2><small>${P_FRAMES.filter(f=>f.need()).length} / ${P_FRAMES.length}</small></div><div class="pfrgrid">${P_FRAMES.map(f=>{ const ok=f.need(); return `<button class="pfr${p.frame===f.id?' on':''}${ok?'':' lock'}" data-pfr="${f.id}" ${ok?'':'disabled'} style="--fc:${f.c}"><i${ART_URL['x_pf_'+f.id]?` class="fi" style="background-image:url('${ART_URL['x_pf_'+f.id]}')"`:''}></i><b>${esc(f.n)}</b><small>${ok?(p.frame===f.id?'Équipé':'Débloqué'):esc(f.how)}</small></button>`; }).join('')}</div></section>
     <section class="sec"><div class="sec-h"><h2>Titre</h2><small>affiché sous le pseudo</small></div><div class="ptitles"><button class="ptt${p.title?'':' on'}" data-ptt="">Aucun</button>${unlockedT.map(T=>`<button class="ptt${p.title===T.t?' on':''}" data-ptt="${esc(T.t)}">${esc(T.t)}</button>`).join('')}</div></section>
     <section class="sec"><div class="sec-h"><h2>Trophées</h2><small>${pTrophyN()} / ${TROPHIES.length}</small></div><div class="ptrg">${TROPHIES.map(T=>`<div class="ptr${p.tr[T.id]?' ok':''}">${ART_URL['x_pf_'+T.id]?`<img class="ptm" alt="" src="${ART_URL['x_pf_'+T.id]}">`:''}<b>${esc(T.n)}</b><small>${esc(T.d)}</small><span>${p.tr[T.id]?'Titre : '+esc(T.t):'Verrouillé'}</span></div>`).join('')}</div></section>`,
-  sh=>{ if(ART_URL.x_pf_fond) sh.style.background=`linear-gradient(rgba(6,10,19,.84),rgba(6,10,19,.92)),url('${ART_URL.x_pf_fond}') center/cover`; const nm=sh.querySelector('#pname'); nm.oninput=()=>{ p.name=nm.value.replace(/[<>]/g,'').slice(0,16)||'Forgeron'; save(); };
+  sh=>{ try{ sh.insertAdjacentHTML('beforeend','<p class="muted" style="margin:18px 0 0;font-size:11px;text-align:center">EXODE · version '+GAME_VER+(window.APP_BUILD?' · '+window.APP_BUILD:'')+'</p>'); }catch(e){} if(ART_URL.x_pf_fond) sh.style.background=`linear-gradient(rgba(6,10,19,.84),rgba(6,10,19,.92)),url('${ART_URL.x_pf_fond}') center/cover`; const nm=sh.querySelector('#pname'); nm.oninput=()=>{ p.name=nm.value.replace(/[<>]/g,'').slice(0,16)||'Forgeron'; save(); };
     const again=()=>{ pBtnRefresh(); openProfile(); };
     sh.querySelectorAll('[data-pav]').forEach(b=>b.onclick=()=>{ p.av=b.dataset.pav; save(); SND.fx.click(); again(); });
     sh.querySelectorAll('[data-pfr]').forEach(b=>b.onclick=()=>{ p.frame=b.dataset.pfr; save(); SND.fx.click(); again(); });
