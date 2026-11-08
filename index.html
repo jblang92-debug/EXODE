@@ -56,7 +56,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,summary:focus-vi
 #view button,#sheet button{min-height:38px}
 .btn.small{min-height:40px}
 #profbtn{width:40px;height:40px}
-.chest{min-width:34px;min-height:34px}
+.chest{min-width:30px;min-height:30px}
 
 .campflow{display:flex;flex-direction:column}
 body.scrolled .top .lvl,body.scrolled .top>.row{display:none}
@@ -739,10 +739,10 @@ img.art{display:block;width:100%;height:100%;object-fit:cover}
 .arcs button:disabled{opacity:.5}
 .chests{border:1px solid var(--line2);background:var(--panel);padding:10px 12px 26px;display:flex;flex-direction:column;gap:8px}
 .chests .jh{display:flex;justify-content:space-between}
-.cbar{position:relative;height:8px;background:var(--void);border:1px solid var(--line2);margin:0 12px}
+.cbar{position:relative;height:8px;background:var(--void);border:1px solid var(--line2);margin:16px 18px 6px}
 .cbar>i{position:absolute;inset:0 auto 0 0;background:linear-gradient(90deg,#b07a2a,var(--amber))}
 .chest{position:absolute;top:50%;transform:translate(-50%,-50%);width:24px;height:24px;border:1px solid var(--line2);background:var(--panel2);display:grid;place-items:center;padding:0}
-.chest span{font-size:12px;color:var(--faint)} .chest small{position:absolute;top:26px;font-family:var(--mono);font-size:9.5px;color:var(--dim)}
+.chest span{font-size:12px;color:var(--faint)} #view .chest{width:30px;height:30px;min-width:30px;min-height:30px;box-sizing:border-box;line-height:1} .chest small{position:absolute;top:34px;font-family:var(--mono);font-size:9.5px;color:var(--dim)}
 .chest.ready{border-color:var(--amber);box-shadow:0 0 12px rgba(255,181,71,.6);animation:breathe 1.6s infinite} .chest.ready span{color:var(--amber)} .chest.got{border-color:var(--green)} .chest.got span{color:var(--green)}
 .smap{position:relative;border:1px solid var(--line2);overflow:hidden;background:#050a14}
 .smap::before{background:linear-gradient(180deg,rgba(4,8,16,.82),rgba(4,8,16,.7) 50%,rgba(4,8,16,.88)),var(--art) var(--apos)/cover no-repeat!important}
