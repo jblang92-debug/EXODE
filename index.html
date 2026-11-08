@@ -1108,7 +1108,7 @@ img.aic.lic{display:inline-block;width:16px;height:16px;vertical-align:-3px;marg
 .journal .jh{flex-wrap:wrap;row-gap:2px}
 .journal .jh .count{margin-left:auto}
 .filters{flex-wrap:wrap;overflow-x:visible}
-html,body{max-width:100%;overflow-x:hidden}
+html,body{max-width:100%;overflow-x:clip}
 
 .adjc{display:flex;gap:10px;align-items:center;border:1px solid color-mix(in srgb,var(--rc) 60%,var(--line));background:var(--panel);padding:8px}
 .adjc img.art,.adjc>img{width:96px;height:64px;object-fit:cover;flex:none}
@@ -4088,7 +4088,7 @@ function afterIntro(){ S.seenIntro=true; save(); SND.music('menu'); setTimeout(f
   const end=()=>{ if(!S.pulls){ go('sig'); toast('Le convoi t\'envoie 1 000 cristaux d\'invocation : lance ton premier tirage !'); } };
   if(!S.tuto.main) runTour('main',end); else end(); }
 function bootMan(){ const m=$('#manbtn'); if(m) m.onclick=()=>{ SND.fx.open(); openManual(0); }; }
-function boot(){ document.documentElement.lang='fr'; addEventListener('scroll',()=>{ const y=window.scrollY, b=document.body; if(y>140&&!b.classList.contains('scrolled')) b.classList.add('scrolled'); else if(y<30&&b.classList.contains('scrolled')) b.classList.remove('scrolled'); },{passive:true}); document.addEventListener('visibilitychange',()=>{ try{ if(document.hidden){ SND.suspend(); document.querySelectorAll('video').forEach(v=>v.pause()); } else { SND.resume(); document.querySelectorAll('.introvid video').forEach(v=>v.play().catch(()=>{})); } }catch(e){} }); addEventListener('pagehide',()=>{ try{ save(); SND.suspend(); }catch(e){} }); bootMan(); if(typeof bootProfile==='function') setTimeout(bootProfile,0);
+function boot(){ document.documentElement.lang='fr'; addEventListener('scroll',()=>{ const y=window.scrollY, b=document.body; if(y>60&&!b.classList.contains('scrolled')) b.classList.add('scrolled'); else if(y<30&&b.classList.contains('scrolled')) b.classList.remove('scrolled'); },{passive:true}); document.addEventListener('visibilitychange',()=>{ try{ if(document.hidden){ SND.suspend(); document.querySelectorAll('video').forEach(v=>v.pause()); } else { SND.resume(); document.querySelectorAll('.introvid video').forEach(v=>v.play().catch(()=>{})); } }catch(e){} }); addEventListener('pagehide',()=>{ try{ save(); SND.suspend(); }catch(e){} }); bootMan(); if(typeof bootProfile==='function') setTimeout(bootProfile,0);
   initArt(); const cu=document.querySelector('.curr'); if(cu) cu.innerHTML=iconize(cu.innerHTML);
   try{ const bl=document.getElementById('brandlogo'); if(bl&&ART_URL.x_logow) bl.innerHTML='<img alt="EXODE" src="'+ART_URL.x_logow+'">'; }catch(e){}
   const sb=$('#sndbtn');
