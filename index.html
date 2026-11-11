@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="EXODE">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-<script>window.APP_BUILD="8638e7f1eb";</script>
+<script>window.APP_BUILD="e0d2d3720f";</script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>EXODE</title>
@@ -2447,7 +2447,7 @@ function innerSet(mask){ const key=mask.join('|'); if(INNER_CACHE[key]) return I
   return INNER_CACHE[key]=out; }
 const isEdge=(mask,r,c)=>!innerSet(mask).has(r+','+c);
 const SPEC_N={over:'surchargée',core:'blindée',relic:'cœur de relique',motor:'moteur',shield:'bouclier',repair:'réparation',exposed:'exposée'};
-/* règles de pose : points d'emport (armes au bord), systèmes à l'intérieur, cases réservées */
+/* règles de pose : tout module va sur toute case libre, hors cases réservées (bouclier, réparation) ; le bord ne sert qu'au bonus du blindage */
 /* bonus de base des vaisseaux du joueur (dégâts et structure), pour que les stats comptent autant que les compétences */
 let PBASE=.5;
 const EDGE_ARMOR=.25; /* blindage posé sur le bord de la coque : +25 % (facultatif, jamais obligatoire) */
@@ -2457,9 +2457,7 @@ function cellRule(plan,k,id){ const M=MODS[id]; if(!M) return 'module inconnu'; 
     if(sp==='shield' && !(M.shield&&M.fam==='def')) return 'Case bouclier : réservée aux modules de bouclier.';
     if(sp==='repair' && !M.repair) return 'Case de réparation : réservée aux nanorépareurs et à la coque nanite.'; }
   if(G.spec[rc]==='repair' && M.repair) return null;
-  if(+g===0 && !M.sz){ const e=isEdge(G.mask,r,c);
-    if(M.fam==='arme' && !e) return 'Les armes se posent sur le bord de la coque (points d\'emport).';
-    if(M.fam==='util' && id!=='pro' && e) return 'Les systèmes se posent à l\'intérieur de la coque.'; }
+  /* aucune contrainte de position : armes et systèmes se posent sur n'importe quelle case libre. Seul le blindage gagne +25 % sur le bord (voir EDGE_ARMOR). */
   return null; }
 /* extension de coque par grade : une rangée ajoutée à la poupe */
 function extendMask(mask, n){
@@ -2945,7 +2943,7 @@ function autoFit(id, avail, doc, grade){
       if(sp==='repair'){ const i=rest.findIndex(x=>MODS[x].repair); const id2=i>=0?rest.splice(i,1)[0]:has('rep')?'rep':null; if(id2){ cells[k]=code(id2); free.delete(k); } } }
     for(const r of rest.filter(p=>p==='rea')){ if(!take('rea',(a,b)=>nb(b)-nb(a))) left.push('arm'); }
     const pr=k=>(spec(k)==='relic'?4:0)+(spec(k)==='exposed'?2:0)+(spec(k)==='over'?2:0)+reaAdj(k);
-    for(const w of rest.filter(p=>p!=='rea'&&MODS[p].fam==='arme').sort((a,b)=>(MODS[b].rar||0)-(MODS[a].rar||0))){ if(!take(w,(a,b)=>pr(b)-pr(a)||pos(a).r-pos(b).r)) left.push('arm'); }
+    for(const w of rest.filter(p=>p!=='rea'&&MODS[p].fam==='arme').sort((a,b)=>(MODS[b].rar||0)-(MODS[a].rar||0))){ if(!take(w,(a,b)=>pr(b)-pr(a)||(+isEdge(plan.grids[g].mask,pos(a).r,pos(a).c))-(+isEdge(plan.grids[g].mask,pos(b).r,pos(b).c))||pos(a).r-pos(b).r)) left.push('arm'); }
     for(const o of rest.filter(p=>p!=='rea'&&MODS[p].fam==='util')){ if(!take(o,(a,b)=>(o==='pro'?(spec(b)==='motor')-(spec(a)==='motor'):0)||(spec(b)==='core')-(spec(a)==='core')||pos(a).r-pos(b).r)) left.push('arm'); }
     for(const o of rest.filter(p=>MODS[p].fam==='def').concat(left)){ const ed=k=>{ const q=pos(k); return +(isEdge(plan.grids[g].mask,q.r,q.c)); }; if(!take(o,(a,b)=>(o==='arm'&&g===0?ed(b)-ed(a):0)||(spec(b)==='core')-(spec(a)==='core')||pos(a).r-pos(b).r)) break; }
     /* puissance : on allège jusqu'à ne plus être en surcharge */
@@ -3553,7 +3551,7 @@ function bpHTML(plan,{interactive=false,mini=false,tool:tl=null}={}){
 const SPEC_LEG=[['over','Surchargée','+30 %','bon'],['exposed','Exposée','+20 %, détruite en premier','bon'],['core','Blindée','jamais détruite','pro'],['relic','Cœur de relique','+60 %, indestructible','pro'],
   ['shield','Bouclier','réservée aux boucliers, +50 %','res'],['repair','Réparation','réservée aux réparations, +50 %','res'],['motor','Moteur','propulseur ×2','mot']];
 function legendHTML(plan){ const have=new Set(); plan.grids.forEach(G=>Object.values(G.spec||{}).forEach(v=>have.add(v)));
-  return `<div class="bp-leg2"><span class="lg-rule"><b>▲ Proue</b> armes lourdes · <b>bord</b> armes · <b>intérieur</b> systèmes</span>${SPEC_LEG.filter(x=>have.has(x[0])).map(([k,n,d,f])=>`<span class="lg lg-${f}"><i class="sw sp-${k}"></i><b>${n}</b> ${d}</span>`).join('')}</div>`; }
+  return `<div class="bp-leg2"><span class="lg-rule"><b>▲ Proue</b> armes lourdes · <b>bord</b> blindage +25 %</span>${SPEC_LEG.filter(x=>have.has(x[0])).map(([k,n,d,f])=>`<span class="lg lg-${f}"><i class="sw sp-${k}"></i><b>${n}</b> ${d}</span>`).join('')}</div>`; }
 function synHTML(c){ const act=c.syn||[], nx=(c.synNext||[]).slice().sort((a,b)=>b.p/b.of-a.p/a.of).slice(0,3);
   if(!act.length&&!nx.length) return `<div class="synbar"><span class="muted">Synergies : aucune en vue. Essaie 3 armes du même type, 2 réacteurs collés, ou des paires blindage + bouclier.</span></div>`;
   return `<div class="synbar">${act.map(x=>`<span class="sy on" title="${esc(x.d)}"><b>✓ ${esc(x.n)} <em>${esc((x.d.match(/\+\d+ (%|de puissance)/)||[''])[0])}</em></b></span>`).join('')}${nx.map(x=>`<span class="sy nx"><b>${esc(x.n)} <em>${x.p}/${x.of}</em></b><i style="--p:${Math.round(x.p/x.of*100)}%"></i><small>${esc(x.d)}</small></span>`).join('')}</div>`; }
@@ -7430,7 +7428,7 @@ const TOURS={
     {tab:'hang', sel:'.ships', t:'Ton hangar. Touche un vaisseau pour ouvrir sa fiche : ses modules, son niveau, ses paliers et ses attaques spéciales.'},
     {tab:'forge', sel:'#fstd', t:'La Forge. Ici, tu améliores tes modules standard avec des crédits, et tu fais monter de grade tes modules rares. Le comptoir échange tes crédits contre le plan que tu cherches.'},
     {tab:'ops', sel:'.modes', t:'Les Opérations : dix modes de jeu qui s\'ouvrent un à un avec ton niveau de joueur. Abysse, chantiers, défis de construction, convoi, arène, roguelike, exploration… Il y aura toujours quelque chose à faire.'},
-    {tab:'camp', sel:'#manbtn', t:'Le bouton « ? » ouvre le Manuel du Forgeron : toutes les règles du jeu, et deux leçons pratiques pour apprendre à construire tes vaisseaux. Je te les proposerai la première fois que tu ouvriras l\'Atelier.'},
+    {tab:'camp', sel:'#manbtn', top:1, t:'Le bouton « ? » ouvre le Manuel du Forgeron : toutes les règles du jeu, et deux leçons pratiques pour apprendre à construire tes vaisseaux. Je te les proposerai la première fois que tu ouvriras l\'Atelier.'},
     {tab:'camp', sel:'#replaytuto', t:'Voilà pour la visite ! Si tu veux me réentendre, touche « Guide ».\nJe reviendrai te parler la première fois que tu ouvriras une fiche de vaisseau, la Forge ou un combat. Bonne chance, Forgeron.'},
   ],
   ship:[
@@ -7438,7 +7436,7 @@ const TOURS={
     {sel:'#gradesec', t:'Son grade. Chaque doublon de ce vaisseau obtenu au Signal donne 10 éclats. Chaque grade en demande un peu plus (de 10 à 30 éclats) et apporte plus de structure et de dégâts, jusqu\'au grade 6 et sa forme ultime.\nUne montée de grade prend un peu de temps : tu peux attendre, ou accélérer avec des ◈.'},
     {sel:'#lvsec', t:'Ses niveaux. Il gagne de l\'XP en combattant, et tu peux aussi l\'entraîner avec des crédits.\nTous les 10 niveaux, il bloque : il faut une percée, avec des noyaux ⬡, pour passer au palier suivant. Chaque palier demande aussi un niveau de joueur minimum.'},
     {sel:'#skillsec', t:'Ses attaques : l\'ultime est disponible dès le départ.\nPuis chaque palier en débloque une, toujours dans cet ordre : une offensive au palier I, une défensive au palier II, une seconde offensive au palier III. Le palier IV les renforce toutes.'},
-    {sel:'#atelier', t:'L\'Atelier : touche un module dans la palette, puis une case allumée. Les armes vont au bord de la coque, les systèmes à l\'intérieur, et le blindage est conseillé sur les bords de la coque : il y gagne 25 % de protection (sans y être obligé). Les cases colorées (moteur, bouclier, réparation, exposée) ont un effet. Les modules lourds prennent plusieurs cases, et certaines combinaisons donnent des synergies.\nPressé ? Le bouton d\'équipement automatique fait tout pour toi.'},
+    {sel:'#atelier', t:'L\'Atelier : touche un module dans la palette, puis une case allumée. Tu poses chaque module où tu veux, armes et systèmes compris. Seul le blindage a une préférence : sur le bord de la coque, il gagne 25 % de protection. Les cases colorées (moteur, bouclier, réparation, exposée) ont un effet. Les modules lourds prennent plusieurs cases, et certaines combinaisons donnent des synergies.\nPressé ? Le bouton d\'équipement automatique fait tout pour toi.'},
   ],
   ops:[
     {sel:'.modes', t:'Bienvenue au centre des opérations ! Chaque mode a ses propres récompenses. Les cartes grisées s\'ouvriront quand ton niveau de joueur sera suffisant.'},
@@ -7485,6 +7483,7 @@ function runTour(name, done){
   let raf=0; const follow=ms=>{ cancelAnimationFrame(raf); const t0=performance.now(); const f=()=>{ place(); if(performance.now()-t0<ms) raf=requestAnimationFrame(f); }; raf=requestAnimationFrame(f); };
   const show=()=>{ const st=steps[i];
     if(st.tab && st.tab!==tab){ go(st.tab); }
+    if(st.top){ window.scrollTo({top:0,behavior:'instant'}); document.body.classList.remove('scrolled'); } /* les boutons de l'en-tête disparaissent quand il est compacté */
     target=st.sel?document.querySelector(st.sel):null;
     if(target){ const r=target.getBoundingClientRect(), bh=bub.offsetHeight+30; const vis=Math.min(r.bottom,innerHeight-bh)-Math.max(r.top,60);
       /* on ne fait défiler que si la cible est vraiment hors de vue, et en douceur */
@@ -7605,17 +7604,17 @@ function openGuide(){
 /* ===== ÉCOLE DE LA FORGE : leçons interactives + Manuel du Forgeron ===== */
 const LESSONS=[
   {id:'atelier', n:'Leçon 1 · L\'Atelier', ship:'etincelle', stock:['kin1','las1','arm1','shd1','rea1','pro1'], steps:[
-    {t:'Voici L\'Étincelle, en plan. Chaque vaisseau a une grille de cases fixe (sa coque), plus une petite annexe à côté. Une case = un module.\nTouche « CIN I » dans le stock : les cases où tu peux le poser s\'allument. Ce sont les cases du bord, les points d\'emport. Pose un canon.', ok:L=>L.cnt('kin')>=1},
+    {t:'Voici L\'Étincelle, en plan. Chaque vaisseau a une grille de cases fixe (sa coque), plus une petite annexe à côté. Une case = un module.\nTouche « CIN I » dans le stock : les cases où tu peux le poser s\'allument : toutes les cases libres de la coque, tu choisis où l\'installer. Pose un canon.', ok:L=>L.cnt('kin')>=1},
     {t:'Regarde la jauge de puissance ⚡ en dessous. Chaque module consomme de la puissance : un canon I en prend 2. La coque de L\'Étincelle fournit 10 au total.\nPose d\'autres armes jusqu\'à dépasser la limite.', ok:L=>L.c.over},
-    {t:'Surcharge ! La jauge est rouge : un vaisseau en surcharge ne peut pas combattre.\nLa solution : le réacteur (RCT). Il ne consomme rien et ajoute de la puissance. C\'est un système : il se pose à l\'intérieur de la coque, jamais sur le bord. Retire une arme si besoin et pose un réacteur.', ok:L=>L.cnt('rea')>=1&&!L.c.over},
+    {t:'Surcharge ! La jauge est rouge : un vaisseau en surcharge ne peut pas combattre.\nLa solution : le réacteur (RCT). Il ne consomme rien et ajoute de la puissance. Retire une arme si besoin et pose un réacteur où tu veux : l\'important est de le placer à côté de tes armes.', ok:L=>L.cnt('rea')>=1&&!L.c.over},
     {t:'Bien ! Le réacteur a un deuxième effet : il renforce les modules posés juste à côté de lui (haut, bas, gauche, droite, pas en diagonale).\nPlace une arme collée au réacteur : un badge « +15 » apparaît sur elle.', ok:L=>L.c.mods.some(m=>m.M.dmg&&m.boost>0)},
-    {t:'Tes armes frappent plus fort. Mais un vaisseau sans défense ne tient pas longtemps.\nAjoute un blindage (BLD) ou un bouclier (BCL). La défense se pose partout, mais place de préférence le blindage sur le bord de la coque : il y gagne 25 % de protection. Attention : le bouclier consomme de la puissance, le blindage presque rien.', ok:L=>L.cnt('arm')+L.cnt('shd')>=1&&!L.c.over},
+    {t:'Tes armes frappent plus fort. Mais un vaisseau sans défense ne tient pas longtemps.\nAjoute un blindage (BLD) ou un bouclier (BCL). Tu peux le poser où tu veux, mais le blindage placé sur le bord de la coque y gagne 25 % de protection : c\'est le seul module qui a un meilleur emplacement. Attention : le bouclier consomme de la puissance, le blindage presque rien.', ok:L=>L.cnt('arm')+L.cnt('shd')>=1&&!L.c.over},
     {t:'Dernier détail : les cases à trait vert, à l\'arrière, sont des cases moteur. Un propulseur (PRO) posé dessus compte double.\nD\'autres vaisseaux ont des cases bouclier, de réparation ou exposées : touche une case pour lire son nom.\nPose un propulseur sur une case moteur.', ok:L=>L.c.mods.some(m=>m.id==='pro'&&m.spec==='motor')&&!L.c.over},
-    {t:'Parfait, ton plan est prêt au combat. Retiens les règles de l\'Atelier :\n1. les armes au bord, les systèmes à l\'intérieur,\n2. la puissance totale ne doit pas être dépassée,\n3. les armes collées aux réacteurs,\n4. le blindage de préférence sur le bord (+25 %),\n5. les cases colorées ont un effet.', ok:()=>true, end:1},
+    {t:'Parfait, ton plan est prêt au combat. Retiens les règles de l\'Atelier :\n1. armes et systèmes se posent où tu veux,\n2. la puissance totale ne doit pas être dépassée,\n3. les armes collées aux réacteurs,\n4. le blindage de préférence sur le bord (+25 %),\n5. les cases colorées ont un effet.', ok:()=>true, end:1},
   ]},
   {id:'escortes', n:'Leçon 2 · Les annexes', ship:'nuee', stock:['kin1','las1','arm1','shd1','rea1'], steps:[
     {t:'La Nuée est un Porteur : six annexes autour de la coque, deux chasseurs (2 cases) et quatre essaims de drones (1 case). Ce sont de petits vaisseaux autonomes : chacun a ses propres cases ET sa propre puissance.\nPose une arme sur une annexe (les petites grilles).', ok:L=>L.c.mods.some(m=>m.g>0&&m.M.dmg)},
-    {t:'Chaque annexe a sa propre jauge ⚡, toute petite (4 ici). La puissance de la coque ne lui est pas partagée. Sur les annexes, pas de règle de bord : tout se pose partout.\nRemplis un chasseur (2 cases) avec deux armes : regarde sa jauge se remplir.', ok:L=>L.c.bodies.some((b,i)=>i>0&&L.c.mods.filter(m=>m.g===i).length>=2)},
+    {t:'Chaque annexe a sa propre jauge ⚡, toute petite (4 ici). La puissance de la coque ne lui est pas partagée. Sur les annexes, pas de bonus de bord : tout se pose partout.\nRemplis un chasseur (2 cases) avec deux armes : regarde sa jauge se remplir.', ok:L=>L.c.bodies.some((b,i)=>i>0&&L.c.mods.filter(m=>m.g===i).length>=2)},
     {t:'Une annexe sans arme ne sert presque à rien. Arme toutes les annexes : la synergie « Meute » donne alors +15 % de dégâts à chacune.', ok:L=>(L.c.syn||[]).some(x=>x.k==='meu')},
     {t:'En combat, chaque type d\'annexe a son comportement :\n• chasseur : très esquif, il passe dans le dos de l\'ennemi (+30 %),\n• frégate (5 à 6 cases) : armée, elle tire par le flanc (+15 %) ; sans arme, elle protège la coque ; avec des nanorépareurs, elle la répare,\n• essaim de drones : très dur à toucher, il tourne autour de la cible (+20 %).', ok:()=>true},
     {t:'Dernière règle : si le vaisseau mère explose, ses annexes explosent avec lui. Une annexe peut aussi être détruite seule : l\'ennemi la vise parfois.\nTu sais tout sur les annexes !', ok:()=>true, end:1},
@@ -7654,7 +7653,7 @@ const MANUAL=[
   {n:'L\'Atelier', h:`<p>Chaque vaisseau a une <b>grille de cases fixe</b> (sa forme) et une <b>puissance de base fixe</b> pour sa coque. Une case accueille un module.</p>
     <div class="mdiag"><div class="mg">${['','w','','w','r','w','','w',''].map(x=>`<i class="${x}">${x==='r'?'RCT':x==='w'?'+%':''}</i>`).join('')}</div><p>Le <b>réacteur</b> ne consomme rien, ajoute de la puissance (+5 à +10) et renforce les <b>4 cases voisines</b> de +15 à +25 % (pas les diagonales). Bonus plafonné à +50 % par module.</p></div>
     <ul><li>La somme des consommations ⚡ ne doit pas dépasser la puissance, sinon : <b>surcharge</b>, le vaisseau ne combat pas.</li><li>Il faut au moins <b>une arme</b>.</li>
-    <li><b>Points d'emport</b> : sur la coque, les <b>armes</b> se posent uniquement sur les cases du <b>bord</b>, les <b>systèmes</b> (réacteur, calculateur, réparation…) uniquement à l'<b>intérieur</b>. Le propulseur et la défense vont partout. Plus une coque a de bords, plus elle porte d'armes. Quand tu tiens un module, les cases possibles s'allument.</li>
+    <li><b>Pose libre</b> : sur la coque, tous les modules (<b>armes</b>, <b>systèmes</b>, propulseur, défense) se posent sur n'importe quelle case libre, sauf les cases réservées. Seul le <b>blindage</b> a un meilleur emplacement : sur le <b>bord</b> de la coque, il gagne <b>+25 %</b>. Quand tu tiens un module, les cases possibles s'allument.</li>
     <li><b>Case surchargée</b> (pointillés orange) : +30 % au module posé dessus.</li><li><b>Case blindée</b> (bord bleu) : son module n'est jamais détruit en combat.</li>
     <li><b>Case moteur</b> (trait vert, à la poupe) : un propulseur posé dessus compte double.</li><li><b>Case bouclier</b> (Cuirassés, Soutiens) : réservée aux boucliers, +50 %.</li><li><b>Case de réparation</b> (Soutiens) : réservée aux nanorépareurs, +50 %.</li>
     <li><b>Case exposée</b> (bord rouge, vaisseaux d'assaut) : +20 %, mais c'est elle que les avaries détruisent en premier.</li><li><b>Case de proue</b> : les cases avant, seules capables de porter une arme lourde.</li>
