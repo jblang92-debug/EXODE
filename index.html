@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="EXODE">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-<script>window.APP_BUILD="d7691e3f35";</script>
+<script>window.APP_BUILD="8638e7f1eb";</script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>EXODE</title>
@@ -4382,7 +4382,7 @@ function showStory(cards, done, opts={}){
     </div>
     <button class="btn small ghost st-skip" id="stskip">Passer</button></div>`;
   starfield($('#stars'));
-  SND.music('story');
+  if(!opts.title) SND.music('story'); // écran-titre : la musique ne démarre qu'après la vidéo d'introduction
   const root=el.querySelector('.story');
   const next=()=>{
     if(typing){ clearInterval(typing); typing=null; $('#sttxt').textContent=full; endSpk(); return; }
